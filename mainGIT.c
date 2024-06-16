@@ -20,15 +20,11 @@ typedef struct {
     int Tamanho;
 } Pilha;
 
-// Estrutura para encapsular a expressão matemática
-typedef struct {
-    char posFixa[512]; // Expressão na forma pos fixa, como 3 12 4 + *
-    char inFixa[512];  // Expressão na forma pos fixa, como 3 * (12 + 4)
-    float Valor;       // Valor numérico da expressão
-} Expressao;
-
 // Protótipos das funções
-char *getFormaInFixa(char *Str);
+void push(Pilha *p, int tipo, double chave);
+double pop(Pilha *p);
+int is_operator(char c);
+int is_function(const char *str, int i);
 float getValor(char *Str);
 
 // Função para empilhar um valor na pilha
@@ -71,25 +67,15 @@ int is_operator(char c) {
     return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^');
 }
 
+// Função para verificar se uma substring é uma função matemática conhecida
 int is_function(const char *str, int i) {
-    // Verifica se há pelo menos 4 caracteres restantes para "raiz"
-    if (strncmp(&str[i], "raiz", 4) == 0 && !isalpha(str[i + 4])) {
-        return 1;
-    }
-    // Verifica se há pelo menos 3 caracteres restantes para "sen", "cos", "log"
-    if ((strncmp(&str[i], "sen", 3) == 0 && !isalpha(str[i + 3])) ||
-        (strncmp(&str[i], "cos", 3) == 0 && !isalpha(str[i + 3])) ||
-        (strncmp(&str[i], "log", 3) == 0 && !isalpha(str[i + 3]))) {
-        return 1;
-    }
-    // Verifica se há pelo menos 2 caracteres restantes para "tg"
-    if (strncmp(&str[i], "tg", 2) == 0 && !isalpha(str[i + 2])) {
-        return 1;
-    }
-    return 0;
+    return (strncmp(&str[i], "raiz", 4) == 0 ||
+            strncmp(&str[i], "sen", 3) == 0 ||
+            strncmp(&str[i], "cos", 3) == 0 ||
+            strncmp(&str[i], "tg", 2) == 0 ||
+            strncmp(&str[i], "log", 3) == 0);
 }
 
-// Função para calcular o valor da expressão postfix
 float getValor(char *Str) {
     Pilha pilha = { NULL, 0 }; // Inicializa a pilha
 
@@ -127,32 +113,59 @@ float getValor(char *Str) {
                 case '^':
                     push(&pilha, 1, pow(b, a));
                     break;
+                default:
+                    printf("Operador desconhecido: %c\n", Str[i]);
+                    return 0.0f;
             }
             i++;
         } else if (is_function(Str, i)) {
-            if (pilha.Tamanho < 1) {
-                printf("Erro: Expressão inválida.\n");
-                return 0.0f;
-            }
-            double a = pop(&pilha);
+            // Trata funções
             if (strncmp(&Str[i], "raiz", 4) == 0) {
+                if (pilha.Tamanho < 1) {
+                    printf("Erro: Expressão inválida.\n");
+                    return 0.0f;
+                }
+                double a = pop(&pilha);
                 push(&pilha, 1, sqrt(a));
                 i += 4;
             } else if (strncmp(&Str[i], "sen", 3) == 0) {
-                push(&pilha, 1, sin(a));
+                if (pilha.Tamanho < 1) {
+                    printf("Erro: Expressão inválida.\n");
+                    return 0.0f;
+                }
+                double a = pop(&pilha);
+                push(&pilha, 1, sin(a * M_PI / 180)); // Converte para radianos
                 i += 3;
             } else if (strncmp(&Str[i], "cos", 3) == 0) {
-                push(&pilha, 1, cos(a));
+                if (pilha.Tamanho < 1) {
+                    printf("Erro: Expressão inválida.\n");
+                    return 0.0f;
+                }
+                double a = pop(&pilha);
+                push(&pilha, 1, cos(a * M_PI / 180)); // Converte para radianos
                 i += 3;
             } else if (strncmp(&Str[i], "tg", 2) == 0) {
-                push(&pilha, 1, tan(a));
+                if (pilha.Tamanho < 1) {
+                    printf("Erro: Expressão inválida.\n");
+                    return 0.0f;
+                }
+                double a = pop(&pilha);
+                push(&pilha, 1, tan(a * M_PI / 180)); // Converte para radianos
                 i += 2;
             } else if (strncmp(&Str[i], "log", 3) == 0) {
+                if (pilha.Tamanho < 1) {
+                    printf("Erro: Expressão inválida.\n");
+                    return 0.0f;
+                }
+                double a = pop(&pilha);
                 push(&pilha, 1, log10(a));
                 i += 3;
+            } else {
+                printf("Função desconhecida: %s\n", &Str[i]);
+                return 0.0f;
             }
         } else {
-            // Se não for operador, assume que é um número e empilha
+            // Se não for operador nem função, assume que é um número e empilha
             if (isdigit(Str[i]) || Str[i] == '.') {
                 char *endPtr;
                 double numero = strtod(&Str[i], &endPtr);
@@ -171,7 +184,6 @@ float getValor(char *Str) {
     return resultado;
 }
 
-// Função para obter a forma inFixa de uma expressão postfix
 char *getFormaInFixa(char *str) {
     static char infixa[512];
     char stack[100][512];
@@ -183,20 +195,16 @@ char *getFormaInFixa(char *str) {
     while (token != NULL) {
         if (isdigit(token[0]) || (token[0] == '-' && isdigit(token[1]))) {
             strcpy(stack[++top], token);
-        } else {
-            char op1[512], op2[512], temp[512];
+        } else if (is_operator(token[0])) {
+            char op2[512], op1[512], temp[512];
             strcpy(op2, stack[top--]);
-            if (top >= 0) {
-                strcpy(op1, stack[top--]);
-            } else {
-                op1[0] = '\0';
-            }
-            if (strcmp(token, "raiz") == 0 || strcmp(token, "sen") == 0 ||
-                strcmp(token, "cos") == 0 || strcmp(token, "tg") == 0 || strcmp(token, "log") == 0) {
-                sprintf(temp, "%s(%s)", token, op2);
-            } else {
-                sprintf(temp, "(%s %s %s)", op1, token, op2);
-            }
+            strcpy(op1, stack[top--]);
+            sprintf(temp, "(%s %s %s)", op1, token, op2);
+            strcpy(stack[++top], temp);
+        } else if (is_function(token, 0)) {
+            char op1[512], temp[512];
+            strcpy(op1, stack[top--]);
+            sprintf(temp, "%s(%s)", token, op1);
             strcpy(stack[++top], temp);
         }
         token = strtok(NULL, " ");
@@ -207,11 +215,13 @@ char *getFormaInFixa(char *str) {
 
 char *removeParenteses(char *inFixa) {
     if (inFixa != NULL && strlen(inFixa) > 0) {
-        if(inFixa[0] = '(') inFixa[0] = inFixa[0];
         size_t tamanho = strlen(inFixa);
 
-        if (tamanho > 0 && inFixa[tamanho - 1] == ')') {
-            inFixa[tamanho - 1] = ' ';
+        // Verifica se começa e termina com parênteses
+        if (inFixa[0] == '(' && inFixa[tamanho - 1] == ')') {
+            // Remove o primeiro e o último caractere
+            memmove(inFixa, inFixa + 1, tamanho - 2);
+            inFixa[tamanho - 2] = '\0';
         }
     }
 
@@ -224,11 +234,9 @@ int main() {
     float resultado = getValor(postfix);
 
     char *infixa = getFormaInFixa(postfix);
-
     infixa = removeParenteses(infixa);
 
-    printf("forma infixa: %s\n", infixa);
-
+    printf("%s\n", infixa);
     printf("Resultado: %.2f\n", resultado);
 
     return 0;
