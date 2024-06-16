@@ -71,6 +71,14 @@ int is_operator(char c) {
     return (c == '+' || c == '-' || c == '*' || c == '/' || c == '^');
 }
 
+int is_function(const char *str, int i) {
+    return (strncmp(&str[i], "raiz", 4) == 0 || 
+            strncmp(&str[i], "sen", 3) == 0 ||
+            strncmp(&str[i], "cos", 3) == 0 ||
+            strncmp(&str[i], "tg", 2) == 0 ||
+            strncmp(&str[i], "log", 3) == 0);
+}
+
 // Função para calcular o valor da expressão postfix
 float getValor(char *Str) {
     Pilha pilha = { NULL, 0 }; // Inicializa a pilha
@@ -111,16 +119,35 @@ float getValor(char *Str) {
                     break;
             }
             i++;
+        } else if (is_function(Str, i)) {
+            if (pilha.Tamanho < 1) {
+                printf("Erro: Expressão inválida.\n");
+                return 0.0f;
+            }
+            double a = pop(&pilha);
+            if (strncmp(&Str[i], "raiz", 4) == 0) {
+                push(&pilha, 1, sqrt(a));
+                i += 4;
+            } else if (strncmp(&Str[i], "sen", 3) == 0) {
+                push(&pilha, 1, sin(a));
+                i += 3;
+            } else if (strncmp(&Str[i], "cos", 3) == 0) {
+                push(&pilha, 1, cos(a));
+                i += 3;
+            } else if (strncmp(&Str[i], "tg", 2) == 0) {
+                push(&pilha, 1, tan(a));
+                i += 2;
+            } else if (strncmp(&Str[i], "log", 3) == 0) {
+                push(&pilha, 1, log10(a));
+                i += 3;
+            }
         } else {
             // Se não for operador, assume que é um número e empilha
             if (isdigit(Str[i]) || Str[i] == '.') {
-                double numero = atof(&Str[i]);
+                char *endPtr;
+                double numero = strtod(&Str[i], &endPtr);
                 push(&pilha, 1, numero);
-
-                // Avança o índice até o próximo não dígito
-                while (isdigit(Str[i]) || Str[i] == '.') {
-                    i++;
-                }
+                i = endPtr - Str;
             } else {
                 // Caractere inválido na expressão
                 printf("Erro: Caractere inválido na expressão.\n");
@@ -183,7 +210,7 @@ char *removeParenteses(char *inFixa) {
 }
 
 int main() {
-    char postfix[512] = "3 4 + 5 *"; 
+    char postfix[512] = "0.5 45 sen 2 ^ +"; 
 
     float resultado = getValor(postfix);
 
