@@ -72,11 +72,21 @@ int is_operator(char c) {
 }
 
 int is_function(const char *str, int i) {
-    return (strncmp(&str[i], "raiz", 4) == 0 || 
-            strncmp(&str[i], "sen", 3) == 0 ||
-            strncmp(&str[i], "cos", 3) == 0 ||
-            strncmp(&str[i], "tg", 2) == 0 ||
-            strncmp(&str[i], "log", 3) == 0);
+    // Verifica se há pelo menos 4 caracteres restantes para "raiz"
+    if (strncmp(&str[i], "raiz", 4) == 0 && !isalpha(str[i + 4])) {
+        return 1;
+    }
+    // Verifica se há pelo menos 3 caracteres restantes para "sen", "cos", "log"
+    if ((strncmp(&str[i], "sen", 3) == 0 && !isalpha(str[i + 3])) ||
+        (strncmp(&str[i], "cos", 3) == 0 && !isalpha(str[i + 3])) ||
+        (strncmp(&str[i], "log", 3) == 0 && !isalpha(str[i + 3]))) {
+        return 1;
+    }
+    // Verifica se há pelo menos 2 caracteres restantes para "tg"
+    if (strncmp(&str[i], "tg", 2) == 0 && !isalpha(str[i + 2])) {
+        return 1;
+    }
+    return 0;
 }
 
 // Função para calcular o valor da expressão postfix
@@ -197,8 +207,7 @@ char *getFormaInFixa(char *str) {
 
 char *removeParenteses(char *inFixa) {
     if (inFixa != NULL && strlen(inFixa) > 0) {
-        inFixa[0] = ' ';
-
+        if(inFixa[0] = '(') inFixa[0] = inFixa[0];
         size_t tamanho = strlen(inFixa);
 
         if (tamanho > 0 && inFixa[tamanho - 1] == ')') {
@@ -210,7 +219,7 @@ char *removeParenteses(char *inFixa) {
 }
 
 int main() {
-    char postfix[512] = "0.5 45 sen 2 ^ +"; 
+    char postfix[512] = "45 60 + 30 cos *"; 
 
     float resultado = getValor(postfix);
 
