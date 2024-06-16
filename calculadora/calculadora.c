@@ -3,9 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
-
 #include "calculadora.h"
-
 
 char *getFormaInFixa(char *str) {
     static char infixa[512];
@@ -41,6 +39,7 @@ char *getFormaInFixa(char *str) {
 }
 
 float getValor(char *str) {
+    Expressao expressao;
     float stack[100];
     int top = -1;
     char tempStr[512];
@@ -69,8 +68,20 @@ float getValor(char *str) {
                 else if (strcmp(token, "^") == 0) stack[++top] = pow(op1, op2);
             }
         }
+        
+        // Construir a expressão na forma posFixa
+        strcat(expressao.posFixa, token);
+        strcat(expressao.posFixa, " ");
+
         token = strtok(NULL, " ");
     }
+    
+    // Copiar a expressão inFixa final para a estrutura Expressao
+    strcpy(expressao.inFixa, expressao.posFixa);
+
+    // Atribuir o valor numérico calculado à estrutura Expressao
+    expressao.Valor = stack[top];
+
     return stack[top];
 }
 
