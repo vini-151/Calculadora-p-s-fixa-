@@ -3,12 +3,12 @@
 #include "calculadora.h"
 
 int main() {
-    char posFixa[] = "45 60 + 30 cos *";
+    char posFixa[] = "2 3 + log 5 /";
     
     // Convertendo para a forma infixa
     char *inFixa = getFormaInFixa(posFixa);
 
-    // inFixa = removeParenteses(inFixa);
+    inFixa = removeParenteses(inFixa);
 
     printf("Expressao Infixa: %s\n", inFixa);
     

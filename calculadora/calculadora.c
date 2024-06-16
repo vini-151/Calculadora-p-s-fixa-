@@ -74,16 +74,16 @@ float getValor(char *str) {
     return stack[top];
 }
 
-// char *removeParenteses(char *inFixa) {
-//     if (inFixa != NULL && strlen(inFixa) > 0) {
-//         inFixa[0] = ' ';
+char *removeParenteses(char *inFixa) {
+    if (inFixa != NULL && strlen(inFixa) > 0) {
+        inFixa[0] = ' ';
 
-//         size_t tamanho = strlen(inFixa);
+        size_t tamanho = strlen(inFixa);
 
-//         if (tamanho > 0 && inFixa[tamanho - 1] == ')') {
-//             inFixa[tamanho - 1] = ' ';
-//         }
-//     }
+        if (tamanho > 0 && inFixa[tamanho - 1] == ')') {
+            inFixa[tamanho - 1] = ' ';
+        }
+    }
 
-//     return inFixa;
-// }
+    return inFixa;
+}

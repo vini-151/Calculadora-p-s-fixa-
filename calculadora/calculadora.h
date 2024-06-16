@@ -9,6 +9,6 @@ typedef struct {
 
 char *getFormaInFixa(char *Str);    // Retorna a forma inFixa de Str (posFixa)
 float getValor(char *Str);          // Calcula o valor de Str (na forma posFixa)
-// char *removeParenteses(char *inFixa); //remove parenteses desnecessários
+char *removeParenteses(char *inFixa); //remove parenteses desnecessários
 
 #endif
