@@ -135,16 +135,63 @@ float getValor(char *Str) {
 }
 
 // Função para obter a forma inFixa de uma expressão postfix
-char *getFormaInFixa(char *Str) {
-    // Implementação da função para obter a forma inFixa
-    // Aqui você pode desenvolver a lógica para converter a expressão postfix em infix
-    return NULL; // Temporariamente retorna NULL
+char *getFormaInFixa(char *str) {
+    static char infixa[512];
+    char stack[100][512];
+    int top = -1;
+    char tempStr[512];
+    strcpy(tempStr, str);  // Faz uma cópia da string original para uso com strtok
+    char *token = strtok(tempStr, " ");
+    
+    while (token != NULL) {
+        if (isdigit(token[0]) || (token[0] == '-' && isdigit(token[1]))) {
+            strcpy(stack[++top], token);
+        } else {
+            char op1[512], op2[512], temp[512];
+            strcpy(op2, stack[top--]);
+            if (top >= 0) {
+                strcpy(op1, stack[top--]);
+            } else {
+                op1[0] = '\0';
+            }
+            if (strcmp(token, "raiz") == 0 || strcmp(token, "sen") == 0 ||
+                strcmp(token, "cos") == 0 || strcmp(token, "tg") == 0 || strcmp(token, "log") == 0) {
+                sprintf(temp, "%s(%s)", token, op2);
+            } else {
+                sprintf(temp, "(%s %s %s)", op1, token, op2);
+            }
+            strcpy(stack[++top], temp);
+        }
+        token = strtok(NULL, " ");
+    }
+    strcpy(infixa, stack[top]);
+    return infixa;
+}
+
+char *removeParenteses(char *inFixa) {
+    if (inFixa != NULL && strlen(inFixa) > 0) {
+        inFixa[0] = ' ';
+
+        size_t tamanho = strlen(inFixa);
+
+        if (tamanho > 0 && inFixa[tamanho - 1] == ')') {
+            inFixa[tamanho - 1] = ' ';
+        }
+    }
+
+    return inFixa;
 }
 
 int main() {
-    char postfix[512] = "8 5 2 4 + * +"; 
+    char postfix[512] = "3 4 + 5 *"; 
 
     float resultado = getValor(postfix);
+
+    char *infixa = getFormaInFixa(postfix);
+
+    infixa = removeParenteses(infixa);
+
+    printf("forma infixa: %s\n", infixa);
 
     printf("Resultado: %.2f\n", resultado);
 
