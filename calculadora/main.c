@@ -10,8 +10,5 @@ int main() {
     char *infixa = getFormaInFixa(postfix);
     infixa = removeParenteses(infixa);
 
-    printf("%s\n", infixa);
-    printf("Resultado: %.2f\n", resultado);
-
     return 0;
 }
