@@ -1,14 +1,29 @@
 #ifndef EXPRESSAO_H
 #define EXPRESSAO_H
 
-typedef struct {
-    char posFixa[512];     // Expressão na forma pos fixa, como 3 12 4 + *
-    char inFixa[512];      // Expressão na forma pos fixa, como 3 * (12 + 4)
-    float Valor;           // Valor numérico da expressão  
-} Expressao;
+// Estrutura para um item da pilha
+typedef struct Item {
+    int tipo; // 0 para operador, 1 para número
+    union {
+        char operador;
+        double numero;
+    } valor;
+    struct Item *proximo;
+} Item;
 
-char *getFormaInFixa(char *Str);    // Retorna a forma inFixa de Str (posFixa)
-float getValor(char *Str);          // Calcula o valor de Str (na forma posFixa)
-char *removeParenteses(char *inFixa); //remove parenteses desnecessários
+// Estrutura para a pilha
+typedef struct {
+    Item *topo;
+    int Tamanho;
+} Pilha;
+
+// Protótipos das funções
+void push(Pilha *p, int tipo, double chave);
+double pop(Pilha *p);
+int is_operator(char c);
+int is_function(const char *str, int i);
+float getValor(char *Str);
+char *getFormaInFixa(char *str);
+char *removeParenteses(char *inFixa);
 
 #endif
