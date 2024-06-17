@@ -3,18 +3,15 @@
 #include "calculadora.h"
 
 int main() {
-    char posFixa[] = "0.5 45 sen 2 ^ +";
-    
-    // Convertendo para a forma infixa
-    char *inFixa = getFormaInFixa(posFixa);
+    char postfix[512] = "0.5 45 sen 2 ^ +"; 
 
-    inFixa = removeParenteses(inFixa);
+    float resultado = getValor(postfix);
 
-    printf("Expressao Infixa: %s\n", inFixa);
-    
-    // Calculando o valor da expressão
-    float valor = getValor(posFixa);
-    printf("Valor da Expressao: %.2f\n", valor);
-    
+    char *infixa = getFormaInFixa(postfix);
+    infixa = removeParenteses(infixa);
+
+    printf("%s\n", infixa);
+    printf("Resultado: %.2f\n", resultado);
+
     return 0;
 }
